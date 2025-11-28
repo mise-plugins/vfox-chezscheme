@@ -1,0 +1,29 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        # Windows requires .exe installer, not source compilation
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install mise
+        uses: jdx/mise-action@v2
+
+      - name: List available versions
+        run: mise ls-remote "vfox:${{ github.repository }}" | head -20
+
+      - name: Install and test chezscheme
+        run: |
+          mise install "vfox:${{ github.repository }}@10.0.0"
+          mise exec "vfox:${{ github.repository }}@10.0.0" -- scheme --version
